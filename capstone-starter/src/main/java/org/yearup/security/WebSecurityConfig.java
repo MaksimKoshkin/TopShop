@@ -39,34 +39,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configure paths and requests that should be ignored by Spring Security
-     * @param web
-     */
     public void configure(WebSecurity web) {
         web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**");
     }
 
-    /**
-     * Configure security settings
-     * @param httpSecurity
-     * @throws Exception
-     */
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                // we don't need CSRF because our token is invulnerable
                 .csrf().disable()
-
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDeniedHandler)
-
-                // create no session
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
+                .and()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/products/**").permitAll()
+                .antMatchers("/categories/**").permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .apply(securityConfigurerAdapter());
     }
@@ -75,4 +66,3 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new JWTConfigurer(tokenProvider);
     }
 }
-
